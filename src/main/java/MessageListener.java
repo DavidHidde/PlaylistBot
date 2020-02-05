@@ -1,12 +1,9 @@
 
-import net.dv8tion.jda.api.entities.MessageHistory;
 import net.dv8tion.jda.api.events.ReadyEvent;
 import net.dv8tion.jda.api.events.ShutdownEvent;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
-
 import javax.annotation.Nonnull;
-import java.util.regex.Pattern;
 
 /**
  * The listener that listens to request from users in the server
@@ -14,28 +11,24 @@ import java.util.regex.Pattern;
 public class MessageListener extends ListenerAdapter {
 
     /**
-     * The Regex that represents YouTube links
-     */
-    private final String REGEX = "http(?:s?):\\/\\/(?:www\\.)?youtu(?:be\\.com\\/watch\\?v=|\\.be\\/)([\\w\\-\\_]*)(&(amp;)?‌​[\\w\\?‌​=]*)?";
-
-    /**
      * The SettingsManager that holds all relevant values and should be updated on shutdown
      */
     private final SettingsManager settings;
 
     /**
-     * The Pattern that is used to match the Discord lines against
+     * The YouTube Handler that should process YouTube link messages
      */
-    private final Pattern pattern;
+    private final YoutubeHandler ytHandler;
 
     /**
      * Create a listener based on the settings
      *
      * @param settings The initialized SettingsManager that contains all the relevant values
+     * @param ytHandler The ytHandler that should be called on new messages
      */
-    public MessageListener(SettingsManager settings) {
+    public MessageListener(SettingsManager settings, YoutubeHandler ytHandler) {
         this.settings = settings;
-        this.pattern = Pattern.compile(REGEX);
+        this.ytHandler = ytHandler;
     }
 
     /**
@@ -55,7 +48,7 @@ public class MessageListener extends ListenerAdapter {
     @Override
     public void onMessageReceived(MessageReceivedEvent event) {
         if (event.getChannel().getIdLong() == settings.getChannelID()) {
-            matchLinks(event.getMessage().getContentDisplay().split(" "));
+            ytHandler.matchLinks(event.getMessage());
         }
         settings.setLastMessageID(event.getMessageIdLong());
     }
@@ -72,21 +65,5 @@ public class MessageListener extends ListenerAdapter {
         } else {
             System.out.println("Settings file might be corrupted. Delete it or manually correct it.");
         }
-    }
-
-    /**
-     * Match an array of strings with the given pattern
-     * @param arr The strings the pattern should be matched against
-     */
-    private void matchLinks(String[] arr) {
-        for (String s : arr) {
-            if (pattern.matcher(s).matches()) {
-                System.out.println(s);
-            }
-        }
-    }
-
-    public processHistory(MessageHistory history){
-
     }
 }

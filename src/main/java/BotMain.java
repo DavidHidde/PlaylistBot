@@ -17,17 +17,18 @@ public class BotMain{
     /**
      * Initialize the values for the JDA
      * @param settings The settings used
+     * @param handler The YouTubeHandler that is used for calls
      * @return The JDA that has been build
      * @throws LoginException Thrown when the token is invalid or something else went wrong
      */
-    private static JDA setupJDA(SettingsManager settings) throws LoginException{
+    private static JDA setupJDA(SettingsManager settings, YoutubeHandler handler) throws LoginException{
         System.out.println("Setting up bot...");
         JDABuilder builder = new JDABuilder(settings.getToken());
         builder.setDisabledCacheFlags(EnumSet.of(CacheFlag.EMOTE, CacheFlag.ACTIVITY, CacheFlag.VOICE_STATE, CacheFlag.CLIENT_STATUS));
         builder.setGuildSubscriptionsEnabled(false);
         builder.setChunkingFilter(ChunkingFilter.NONE);
         builder.setActivity(Activity.listening("to old memes I missed"));
-        builder.addEventListeners(new MessageListener(settings));
+        builder.addEventListeners(new MessageListener(settings, handler));
         return builder.build();
     }
 
@@ -38,15 +39,20 @@ public class BotMain{
     public static void main(String[] args) throws LoginException, InterruptedException {
         System.out.println("Initializing bot values...");
         SettingsManager settings = new SettingsManager();
-        JDA jda = setupJDA(settings);
+        YoutubeHandler ytHandler = new YoutubeHandler();
+        JDA jda = setupJDA(settings, ytHandler);
         jda.awaitReady();
+        ytHandler.processHistory(jda.getTextChannelById(settings.getChannelID()),settings);
         Scanner scanner = new Scanner(System.in);
         while(!scanner.nextLine().equals("stop")){}//Shutdown when the user inputs stop
+        shutdown(jda);
+    }
+
+    private static void shutdown(JDA jda){
         jda.shutdown();
         //Manually shutdown the OkHttpClient to make sure the client doesn't halt the shutdown
         OkHttpClient client = jda.getHttpClient();
         client.connectionPool().evictAll();
         client.dispatcher().executorService().shutdown();
-
     }
 }

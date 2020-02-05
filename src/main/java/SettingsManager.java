@@ -19,7 +19,7 @@ public class SettingsManager {
     /**
      * The ID of the last message seen by the bot
      */
-    private long lastMessageID;
+    private Long lastMessageID;
 
     /**
      * The file that should be read and written to
@@ -67,6 +67,7 @@ public class SettingsManager {
         token = scanner.nextLine();
         System.out.println("Please insert a channel ID:");
         channelID = Long.parseLong(scanner.nextLine());
+        lastMessageID = null;
     }
 
     /**
@@ -94,7 +95,7 @@ public class SettingsManager {
         return channelID;
     }
 
-    public long getLastMessageID() {
+    public Long getLastMessageID() {
         return lastMessageID;
     }
 
