@@ -87,6 +87,6 @@ public class MessageListener extends ListenerAdapter {
     }
 
     public processHistory(MessageHistory history){
-        
+
     }
 }
