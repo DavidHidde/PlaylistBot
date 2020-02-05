@@ -22,28 +22,27 @@ public class SettingsManager {
     private long lastMessageID;
 
     /**
-     * Indicates if no error has occurred and everything has been set correctly
+     * The file that should be read and written to
      */
-    private boolean correct;
+    private final File file;
 
     /**
      * Create the manager, loading in the values from the settings file or creating one.
      */
     public SettingsManager(){
-        correct = false;
-        File file = new File("settings.txt");
+        this.file = new File("settings.txt");
         if(file.exists()){
-            loadValues(file);
+            loadValues();
         } else {
-            createValues(file);
+            createValues();
         }
     }
 
     /**
      * Load the values from a settings file
-     * @param file The settings file that should be loaded in
      */
-    private void loadValues(File file){
+    private boolean loadValues(){
+        boolean correct = false;
         try(BufferedReader br = new BufferedReader(new FileReader(file))){
             token = br.readLine().split(":")[1];
             channelID = Long.parseLong(br.readLine().split(":")[1]);
@@ -56,26 +55,34 @@ public class SettingsManager {
         } catch (ArrayIndexOutOfBoundsException e){
             System.out.println("Settings file incomplete");
         }
+        return correct;
     }
 
     /**
-     * Create a new settings file, asking the user for the values
+     * Ask the user and create the new values
      */
-    private void createValues(File file){
+    private void createValues(){
         Scanner scanner = new Scanner(System.in);
-        String line;
+        System.out.println("Please insert a token:");
+        token = scanner.nextLine();
+        System.out.println("Please insert a channel ID:");
+        channelID = Long.parseLong(scanner.nextLine());
+    }
+
+    /**
+     * Write the values to the settings file
+     * @return True if the values have been succesfully written, else false
+     */
+    public boolean writeValues(){
         try(BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(file)));){
-            System.out.println("Please insert a token:");
-            line = scanner.nextLine();
-            bw.write("Token:"+line+System.lineSeparator());
-            System.out.println("Please insert a channel ID:");
-            line = scanner.nextLine();
-            bw.write("channelID:"+line+System.lineSeparator());
-            bw.write("messageID:"+System.lineSeparator());
+            bw.write("Token:"+token+System.lineSeparator());
+            bw.write("channelID:"+channelID+System.lineSeparator());
+            bw.write("messageID:"+lastMessageID+System.lineSeparator());
             bw.flush();
-            correct = true;
+            return true;
         } catch (IOException e) {
             System.out.println("Could not create settings file");
+            return false;
         }
     }
 
@@ -91,7 +98,7 @@ public class SettingsManager {
         return lastMessageID;
     }
 
-    public boolean isCorrect() {
-        return correct;
+    public void setLastMessageID(long lastMessageID) {
+        this.lastMessageID = lastMessageID;
     }
 }
