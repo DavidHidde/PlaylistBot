@@ -5,4 +5,6 @@
 .idea
 target
 .DS_Store
+settings.txt
+client_secret.json
 
