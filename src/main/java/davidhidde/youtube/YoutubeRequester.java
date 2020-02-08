@@ -1,4 +1,4 @@
-package playlistbot.youtube;
+package davidhidde.youtube;
 
 import com.google.api.client.auth.oauth2.Credential;
 import com.google.api.client.extensions.java6.auth.oauth2.AuthorizationCodeInstalledApp;
@@ -42,7 +42,18 @@ class YoutubeRequester {
         try {
             dataStoreFactory = new FileDataStoreFactory(dir);
         } catch (IOException e) {
+            System.out.println("Couldn't create tokens directory");
+            System.exit(1);
+        }
+        //Setup a token
+        try {
+            NetHttpTransport httpTransport = GoogleNetHttpTransport.newTrustedTransport();
+            authorize(httpTransport);
+        } catch (GeneralSecurityException e) {
             e.printStackTrace();
+        } catch (IOException e) {
+            System.out.println("Couldn't load client secrets");
+            System.exit(1);
         }
     }
 
@@ -82,9 +93,10 @@ class YoutubeRequester {
         try {
             youtube = getService();
         } catch (GeneralSecurityException e) {
-            e.printStackTrace();
-        } catch (IOException e) {
             System.out.println("Couldn't connect to YouTube");
+        } catch (IOException e) {
+            System.out.println("Couldn't load client secrets");
+            System.exit(1);
         }
         // Define the PlaylistItem object, which will be uploaded as the request body.
         PlaylistItem playlistItem = new PlaylistItem();

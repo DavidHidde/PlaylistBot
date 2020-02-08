@@ -1,8 +1,8 @@
-package playlistbot.youtube;
+package davidhidde.youtube;
 
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.TextChannel;
-import playlistbot.SettingsManager;
+import davidhidde.SettingsManager;
 
 import java.util.List;
 import java.util.regex.Matcher;

@@ -80,7 +80,7 @@
                         <manifest>
                             <addClasspath>true</addClasspath>
                             <classpathPrefix>lib/</classpathPrefix>
-                            <mainClass>playlistbot.BotMain</mainClass>
+                            <mainClass>davidhidde.BotMain</mainClass>
                         </manifest>
                     </archive>
                 </configuration>

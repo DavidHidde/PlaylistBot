@@ -1,4 +1,4 @@
-package playlistbot;
+package davidhidde;
 
 import java.io.*;
 import java.util.Scanner;
@@ -71,12 +71,12 @@ public class SettingsManager {
      */
     private void createValues(){
         Scanner scanner = new Scanner(System.in);
-        System.out.println("Please insert a token:");
+        System.out.println("Please insert a Discord token:");
         token = scanner.nextLine();
-        System.out.println("Please insert a channel ID:");
+        System.out.println("Please insert a Discord channel ID:");
         channelID = Long.parseLong(scanner.nextLine());
         lastMessageID = null;
-        System.out.println("Please insert a playlist ID:");
+        System.out.println("Please insert a YouTube playlist ID:");
         playlistID = scanner.nextLine();
     }
 

@@ -1,13 +1,12 @@
-package playlistbot;
+package davidhidde;
 
-import ch.qos.logback.classic.util.ContextInitializer;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.JDABuilder;
 import net.dv8tion.jda.api.entities.Activity;
 import net.dv8tion.jda.api.utils.ChunkingFilter;
 import net.dv8tion.jda.api.utils.cache.CacheFlag;
 import okhttp3.OkHttpClient;
-import playlistbot.youtube.YoutubeHandler;
+import davidhidde.youtube.YoutubeHandler;
 
 import javax.security.auth.login.LoginException;
 import java.util.EnumSet;
@@ -47,6 +46,7 @@ public class BotMain{
         JDA jda = setupJDA(settings, ytHandler);
         jda.awaitReady();
         ytHandler.processHistory(jda.getTextChannelById(settings.getChannelID()));
+        settings.writeValues();
         Scanner scanner = new Scanner(System.in);
         while(!scanner.nextLine().equals("stop")){}//Shutdown when the user inputs stop
         shutdown(jda);

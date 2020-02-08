@@ -1,10 +1,10 @@
-package playlistbot;
+package davidhidde;
 
 import net.dv8tion.jda.api.events.ReadyEvent;
 import net.dv8tion.jda.api.events.ShutdownEvent;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
-import playlistbot.youtube.YoutubeHandler;
+import davidhidde.youtube.YoutubeHandler;
 
 import javax.annotation.Nonnull;
 
@@ -54,6 +54,7 @@ public class MessageListener extends ListenerAdapter {
             ytHandler.matchLinks(event.getMessage());
         }
         settings.setLastMessageID(event.getMessageIdLong());
+        settings.writeValues();
     }
 
     /**
