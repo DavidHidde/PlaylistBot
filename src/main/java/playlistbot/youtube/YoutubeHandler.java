@@ -4,6 +4,7 @@ import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.TextChannel;
 import playlistbot.SettingsManager;
 
+import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -67,22 +68,19 @@ public class YoutubeHandler {
                     matchLinks(first);
                     settings.setLastMessageID(first.getIdLong());
                     processHistory(channel);
-                } else{
-                    return;
                 }
             });
         } else {
             channel.getHistoryAfter(settings.getLastMessageID(), 50).queue(history -> {
                 if (!history.isEmpty()) {
-                    Message first = history.getRetrievedHistory().get(0);
-                    settings.setLastMessageID(first.getIdLong());
-                    for(Message m : history.getRetrievedHistory()){
-                        matchLinks(m);
+                    List<Message> list = history.getRetrievedHistory();
+                    for(int i = list.size()-1; i>=0; i--){
+                        matchLinks(list.get(i));
                     }
+                    settings.setLastMessageID(list.get(0).getIdLong());
                     processHistory(channel);
                 }
             });
         }
     }
 }
-//TODO: improve history processing (time-wise)

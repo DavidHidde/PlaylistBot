@@ -64,4 +64,3 @@ public class BotMain{
         client.dispatcher().executorService().shutdown();
     }
 }
-//TODO: Configure logback for no unneccesary logs

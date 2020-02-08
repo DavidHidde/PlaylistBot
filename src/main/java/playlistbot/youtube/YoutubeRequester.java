@@ -9,15 +9,13 @@ import com.google.api.client.googleapis.javanet.GoogleNetHttpTransport;
 import com.google.api.client.http.javanet.NetHttpTransport;
 import com.google.api.client.json.JsonFactory;
 import com.google.api.client.json.jackson2.JacksonFactory;
+import com.google.api.client.util.store.FileDataStoreFactory;
 import com.google.api.services.youtube.YouTube;
 import com.google.api.services.youtube.model.PlaylistItem;
 import com.google.api.services.youtube.model.PlaylistItemSnippet;
 import com.google.api.services.youtube.model.ResourceId;
 
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
+import java.io.*;
 import java.security.GeneralSecurityException;
 import java.util.Collection;
 import java.util.Collections;
@@ -28,28 +26,23 @@ import java.util.Collections;
 class YoutubeRequester {
 
     private final String CLIENT_SECRETS= "client_secret.json";
-    private final Collection<String> SCOPES =
-            Collections.singletonList("https://www.googleapis.com/auth/youtube");
-
+    private final Collection<String> SCOPES = Collections.singletonList("https://www.googleapis.com/auth/youtube");
     private final String APPLICATION_NAME = "PlaylistBot";
     private JsonFactory JSON_FACTORY = JacksonFactory.getDefaultInstance();
-
-    /**
-     * The Youtube instance that is used for inserting playlistitems
-     */
-    private YouTube youtube;
-
+    private FileDataStoreFactory dataStoreFactory;
 
     /**
      * Get a new YoutubeRequester which can make requests to YouTube
      */
     YoutubeRequester(){
+       File dir = new File("tokens");
+       if(!dir.isDirectory()){
+           dir.mkdir();
+       }
         try {
-            youtube = getService();
-        } catch (GeneralSecurityException e) {
-            e.printStackTrace();
+            dataStoreFactory = new FileDataStoreFactory(dir);
         } catch (IOException e) {
-            System.err.println("Couldn't load "+CLIENT_SECRETS);
+            e.printStackTrace();
         }
     }
 
@@ -62,12 +55,10 @@ class YoutubeRequester {
     private Credential authorize(final NetHttpTransport httpTransport) throws IOException {
         // Load client secrets.
         InputStream in = new FileInputStream(CLIENT_SECRETS);
-        GoogleClientSecrets clientSecrets =
-                GoogleClientSecrets.load(JSON_FACTORY, new InputStreamReader(in));
+        GoogleClientSecrets clientSecrets = GoogleClientSecrets.load(JSON_FACTORY, new InputStreamReader(in));
         // Build flow and trigger user authorization request.
-        GoogleAuthorizationCodeFlow flow =
-                new GoogleAuthorizationCodeFlow.Builder(httpTransport, JSON_FACTORY, clientSecrets, SCOPES)
-                        .build();
+        GoogleAuthorizationCodeFlow flow = new GoogleAuthorizationCodeFlow.Builder(httpTransport, JSON_FACTORY, clientSecrets, SCOPES)
+                .setDataStoreFactory(dataStoreFactory).build();
         return new AuthorizationCodeInstalledApp(flow, new LocalServerReceiver()).authorize("user");
     }
 
@@ -86,6 +77,15 @@ class YoutubeRequester {
     }
 
     public void addPlaylistItem(String playListItem, String playListID){
+        //Check if we haven't connected to youtube yet or the token has expired
+        YouTube youtube = null;
+        try {
+            youtube = getService();
+        } catch (GeneralSecurityException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            System.out.println("Couldn't connect to YouTube");
+        }
         // Define the PlaylistItem object, which will be uploaded as the request body.
         PlaylistItem playlistItem = new PlaylistItem();
 
@@ -100,9 +100,8 @@ class YoutubeRequester {
         playlistItem.setSnippet(snippet);
 
         // Define and execute the API request
-        YouTube.PlaylistItems.Insert request = null;
         try {
-            request = youtube.playlistItems()
+            YouTube.PlaylistItems.Insert request = youtube.playlistItems()
                     .insert("snippet", playlistItem);
             PlaylistItem response = request.execute();
             System.out.println(response);
@@ -110,6 +109,4 @@ class YoutubeRequester {
             System.out.println("Could not insert video into playlist");
         }
     }
-
-    //TODO: Make sure you don't have to manually verify on every startup
 }
