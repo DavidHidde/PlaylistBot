@@ -12,6 +12,7 @@ import com.google.api.client.json.jackson2.JacksonFactory;
 import com.google.api.client.util.store.FileDataStoreFactory;
 import com.google.api.services.youtube.YouTube;
 import com.google.api.services.youtube.model.PlaylistItem;
+import com.google.api.services.youtube.model.PlaylistItemListResponse;
 import com.google.api.services.youtube.model.PlaylistItemSnippet;
 import com.google.api.services.youtube.model.ResourceId;
 
@@ -52,8 +53,7 @@ class YoutubeRequester {
         } catch (GeneralSecurityException e) {
             e.printStackTrace();
         } catch (IOException e) {
-            System.out.println("Couldn't load client secrets");
-            System.exit(1);
+            System.out.println("Couldn't load client secrets, please check if the file 'client_secrets.json' is present in the parent directory");
         }
     }
 
@@ -76,7 +76,7 @@ class YoutubeRequester {
     /**
      * Build and return an authorized API client service.
      *
-     * @return an authorized API client service
+     * @return an authorized Youtube API client service
      * @throws GeneralSecurityException, IOException
      */
     private YouTube getService() throws GeneralSecurityException, IOException {
@@ -87,20 +87,36 @@ class YoutubeRequester {
                 .build();
     }
 
-    public void addPlaylistItem(String playListItem, String playListID){
-        //Check if we haven't connected to youtube yet or the token has expired
-        YouTube youtube = null;
-        try {
-            youtube = getService();
-        } catch (GeneralSecurityException e) {
-            System.out.println("Couldn't connect to YouTube");
+    /**
+     * Check if the video is a duplicate in the specified playlist
+     * @param youtube An authorized Youtube API service
+     * @param playListItem The id of the video to be checked
+     * @param playListID The id of the playlist the video should be inserted into
+     * @return True if the video is a duplicate in the playlist, else false
+     */
+    private boolean checkDuplicate(YouTube youtube, String playListItem, String playListID){
+        boolean result = true;
+        try{
+            YouTube.PlaylistItems.List request = youtube.playlistItems().list("id");
+            PlaylistItemListResponse response = request.setPlaylistId(playListID)
+                    .setVideoId(playListItem)
+                    .execute();
+            result = response.getPageInfo().getTotalResults()>0;
         } catch (IOException e) {
-            System.out.println("Couldn't load client secrets");
-            System.exit(1);
+            System.out.println("Could not check for duplicate videos in playlist");
         }
+        return result;
+    }
+
+    /**
+     * Create a new PlaylistItem with a snippet based on the given id's
+     * @param playListItem The id of the video to be inserted
+     * @param playListID The id of the playlist the video should be inserted into
+     * @return The PlaylistItem with a snippet set
+     */
+    private PlaylistItem createPlayListItem(String playListItem, String playListID){
         // Define the PlaylistItem object, which will be uploaded as the request body.
         PlaylistItem playlistItem = new PlaylistItem();
-
         // Add the snippet object property to the PlaylistItem object.
         PlaylistItemSnippet snippet = new PlaylistItemSnippet();
         snippet.setPlaylistId(playListID);
@@ -110,15 +126,34 @@ class YoutubeRequester {
         resourceId.setVideoId(playListItem);
         snippet.setResourceId(resourceId);
         playlistItem.setSnippet(snippet);
+        return playlistItem;
+    }
 
-        // Define and execute the API request
+    /**
+     * Insert the specified item to the specified playlist
+     * @param playListItem The id of the video to be inserted
+     * @param playListID The id of the playlist the video should be inserted into
+     */
+    public void addPlaylistItem(String playListItem, String playListID){
+        //Create a new Youtube instance for requests
+        YouTube youtube = null;
         try {
-            YouTube.PlaylistItems.Insert request = youtube.playlistItems()
-                    .insert("snippet", playlistItem);
-            PlaylistItem response = request.execute();
-            System.out.println(response);
+            youtube = getService();
+        } catch (GeneralSecurityException e) {
+            System.out.println("Couldn't connect to YouTube");
         } catch (IOException e) {
-            System.out.println("Could not insert video into playlist");
+            System.out.println("Couldn't load client secrets, please check if the file 'client_secrets.json' is present in the parent directory");
+        }
+        if(youtube!=null && !checkDuplicate(youtube, playListItem, playListID)){
+            PlaylistItem item = createPlayListItem(playListItem, playListID);
+            // Define and execute the API request
+            try {
+                YouTube.PlaylistItems.Insert request = youtube.playlistItems().insert("snippet", item);
+                PlaylistItem response = request.execute();
+                System.out.println(response);
+            } catch (IOException e) {
+                System.out.println("Could not insert video into playlist");
+            }
         }
     }
 }
