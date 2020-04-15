@@ -4,7 +4,7 @@ PlaylistBot is a JDA based Discord bot that gathers YouTube links in a Discord C
 ## Installation
 
 To install this bot you need a couple of things:
- - The [jar](https://drive.google.com/open?id=10QGssmh-2De0VVP9NuaNeaOeusaa1K12) of the bot
+ - The [jar](https://github.com/DavidHidde/PlaylistBot/releases) of the bot
  - An installation of Java
  - An API key for the YouTube Data API, complete with OAuth 2 screen
  - A Discord bot token
